@@ -3,73 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Odd Emoji Generator</title>
+    <title>Odd Emoji Generator - Fixed</title>
     <style>
-        /* Base reset and mobile scaling */
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
-            margin: 0; padding: 0;
-            background-color: #000; /* Black bars on desktop, fits phone exactly */
+            background-color: #111; /* Dark background outside the video */
             display: flex; justify-content: center; align-items: center;
             height: 100vh; overflow: hidden;
             font-family: -apple-system, sans-serif;
         }
 
-        /* The 9:16 Video Frame */
+        /* Strictly forces a 9:16 aspect ratio (TikTok/Shorts format) */
         #video-frame {
-            width: 100vw; height: 100vh; max-width: 500px;
+            width: 100%;
+            height: 100%;
+            max-width: 450px; /* Keeps it phone-sized on laptop */
+            max-height: 800px;
             background: linear-gradient(135deg, #ff007a, #ff7300);
             position: relative;
             display: flex; flex-direction: column; align-items: center;
             overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* Video Elements */
-        .title {
-            margin-top: 12vh;
-            background: #ffffff;
-            padding: 15px 30px;
-            border-radius: 40px;
-            font-size: 7vw;
-            font-weight: 800;
-            color: #111;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            z-index: 10;
-        }
-        
+        /* Top timer bar */
         .timer-bar {
-            width: 0%; height: 5px; background: white;
+            width: 0%; height: 6px; background: white;
             position: absolute; top: 0; left: 0;
             transition: width 10s linear;
         }
 
+        .title {
+            margin-top: 10%;
+            background: #ffffff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 28px;
+            font-weight: 800;
+            color: #111;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 80%;
+            z-index: 10;
+        }
+
+        /* The Grid - Fixed to stay inside the box */
         .grid {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            gap: 1.5vw;
-            margin-top: 5vh;
-            padding: 20px;
-            width: 95%;
+            gap: 5px; /* Fixed gap */
+            margin-top: 10%;
+            padding: 15px;
+            width: 90%; /* Strict width */
             background: rgba(255,255,255,0.95);
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .cell {
             position: relative;
-            font-size: 8vw; /* Scales emoji to mobile width */
             display: flex; justify-content: center; align-items: center;
             aspect-ratio: 1/1;
+            font-size: 30px; /* Absolute font size so emojis never overflow */
         }
 
         /* The 2-Second Flying Pulse Ring */
         .reveal-ring {
             position: absolute;
-            width: 160%; height: 160%;
-            border: 6px solid #00FF00;
+            width: 130%; height: 130%;
+            border: 5px solid #00FF00;
             border-radius: 50%;
             opacity: 0;
-            /* Starts massive and off-screen */
             transform: scale(5) translateY(-300px);
             animation: flyInAndPulse 2s forwards;
             z-index: 50;
@@ -77,25 +82,30 @@
 
         @keyframes flyInAndPulse {
             0% { transform: scale(5) translateY(-300px); opacity: 0; }
-            20% { transform: scale(1) translateY(0); opacity: 1; box-shadow: 0 0 20px #00FF00; }
-            50% { transform: scale(1.3); box-shadow: 0 0 50px #00FF00; }
-            80% { transform: scale(1); box-shadow: 0 0 20px #00FF00; }
+            20% { transform: scale(1) translateY(0); opacity: 1; box-shadow: 0 0 10px #00FF00; }
+            50% { transform: scale(1.3); box-shadow: 0 0 30px #00FF00; }
+            80% { transform: scale(1); box-shadow: 0 0 10px #00FF00; }
             100% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0px #00FF00; }
         }
 
-        /* Creator UI Controls (Hidden during recording) */
+        /* Creator UI Controls */
         #controls {
-            position: absolute; bottom: 8vh;
+            position: absolute; bottom: 5%;
             display: flex; gap: 15px; z-index: 100;
         }
         button {
-            padding: 15px 25px; font-size: 18px; font-weight: bold;
-            border: none; border-radius: 15px; cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            padding: 12px 20px; font-size: 16px; font-weight: bold;
+            border: none; border-radius: 10px; cursor: pointer;
         }
         .btn-shuffle { background: #333; color: white; }
         .btn-play { background: #00FF00; color: black; }
         .hidden { display: none !important; }
+
+        /* Media query to slightly reduce emoji size on very tiny phones */
+        @media (max-width: 380px) {
+            .cell { font-size: 24px; }
+            .title { font-size: 22px; }
+        }
     </style>
 </head>
 <body>
@@ -113,7 +123,6 @@
     </div>
 
     <script>
-        // High-converting psychological pairs
         const emojiPairs = [
             { base: '🦄', odd: '🐴' },
             { base: '🤩', odd: '😍' },
@@ -129,12 +138,9 @@
 
         function generateGrid() {
             const grid = document.getElementById('grid');
-            grid.innerHTML = ''; // Clear existing
+            grid.innerHTML = ''; 
             
-            // Pick a random pair
             const randomPair = emojiPairs[Math.floor(Math.random() * emojiPairs.length)];
-            
-            // 8x8 grid = 64 items
             const totalCells = 64;
             currentOddIndex = Math.floor(Math.random() * totalCells);
 
@@ -148,14 +154,11 @@
         }
 
         function startRecordingSequence() {
-            // 1. Hide the buttons so they aren't in the video
             document.getElementById('controls').classList.add('hidden');
             
-            // 2. Start the top progress bar timer
             const timerBar = document.getElementById('timerBar');
             setTimeout(() => { timerBar.style.width = '100%'; }, 50);
 
-            // 3. Wait exactly 10 seconds, then trigger the flying ring
             setTimeout(() => {
                 const targetCell = document.getElementById(`cell-${currentOddIndex}`);
                 const ring = document.createElement('div');
@@ -163,16 +166,14 @@
                 targetCell.appendChild(ring);
             }, 10000);
 
-            // 4. Reset UI after 13 seconds so you can make the next video
             setTimeout(() => {
                 document.getElementById('controls').classList.remove('hidden');
                 timerBar.style.width = '0%';
-                timerBar.style.transition = 'none'; // reset without animating back
+                timerBar.style.transition = 'none'; 
                 setTimeout(() => { timerBar.style.transition = 'width 10s linear'; }, 100);
             }, 13000);
         }
 
-        // Initialize first grid on load
         window.onload = generateGrid;
     </script>
 </body>
